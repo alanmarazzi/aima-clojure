@@ -8,52 +8,57 @@
 
 (defn percept
   [env agent]
-  (list-things env (:location @agent)))
+  (list-things env (:location agent)))
 
 (defn move-down
-  [agent]
-  (swap! agent update :location inc))
+  [env agent]
+  (let [ag-name (:name agent)
+        new-agent (update agent :location inc)
+        dropped (filterv #(not (same-name? % ag-name)) (:agents @env))
+        new-locations (conj dropped new-agent)]
+    (swap! env assoc :agents new-locations)))
 
 (defn consume-thing
-  [env agent kind]
-  (let [things (list-things env (:location @agent) kind)]
+  [env location kind]
+  (let [things (list-things env location kind)]
     (when (not-empty things)
       (remove-thing env (first things))
-      things)))
+      (first things))))
 
 (defn eat
   [env agent]
-  (consume-thing env agent "food"))
+  (let [location (:location agent)]
+    (consume-thing env location :food)))
 
 (defn drink
   [env agent]
-  (consume-thing env agent "water"))
+  (let [location (:location agent)]
+    (consume-thing env location :water)))
 
 (defn execute
   [env agent action]
   (case action
-    nil (do (println (:name @agent) "decided to"
-                     action "at" (:location @agent))
-            (move-down agent))
-    :eat (println (:name @agent) "ate" (first (eat env agent))
-                       "at" (:location @agent))
-    :drink (println (:name @agent) "drank" (first (drink env agent))
-                           "at" (:location @agent))))
+    :eat (println (:name agent) "ate" (:name (eat env agent))
+                       "at" (:location agent))
+    :drink (println (:name agent) "drank" (:name (drink env agent))
+                    "at" (:location agent))
+    (do (println (:name agent) "decided to"
+                 "move down" "at" (:location agent))
+        (move-down env))))
 
-(defn check-alive?
+(defn alive-left?
   [env]
-  (not (some alive? (:agents @env))))
+  (some alive? (:agents @env)))
 
-(defn check-edible?
+(defn edible-left?
   [env]
-  (not (some #{"food" "water"} (:things @env))))
+  (boolean (some #{:food :water} (map :name (:things @env)))))
 
 (defn program
   [percepts]
   (let [mapping {:water :drink
-                 :food :eat}]
-    (println percepts)
-    (map #(mapping (:name %)) percepts)))
+                 :food  :eat}]
+    (mapping (:name percepts))))
 
 (defn up-env
   []
@@ -61,12 +66,15 @@
     (new-agent program :blind-dog))
 
   (def park
-    (new-environment))
+    (new-environment :park
+                     (fn [env] (done? env alive-left? edible-left?))
+                     percept
+                     execute))
 
-  (add-thing park dog 5)
+  (add-thing park dog 1)
   (add-thing park food 5)
   (add-thing park water 7))
 
-(dorun 5 (step park
-               (done? park check-alive? check-edible?)
-               (execute park dog :eat)))
+(defn run
+  [env n]
+  ())
