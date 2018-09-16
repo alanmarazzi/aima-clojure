@@ -37,9 +37,9 @@
   (:alive @obj))
 
 (defn new-environment
-  [objs agents]
-  (atom {:things objs
-         :agents agents}))
+  []
+  (atom {:things []
+         :agents []}))
 
 (defn perceive-&-run
   [agent percept]
@@ -70,7 +70,8 @@
      (filter #(same-location? % location) things)))
   ([env location kind]
    (let [things (list-things env location)]
-     (filter #(= (:name %) kind) things))))
+     (filter (fn [x]
+               (= (:name @x) kind) things)))))
 
 (defn location-empty?
   [env location]

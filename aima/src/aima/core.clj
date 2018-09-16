@@ -2,15 +2,9 @@
   (:require [aima.agents :refer :all :reload true]))
 
 ; Blind dog example
-(def dog
-  (new-agent nil "blind-dog"))
+(def food (new-object :food))
 
-(def food (new-object "food"))
-
-(def water (new-object "water"))
-
-(def park
-  (new-environment))
+(def water (new-object :water))
 
 (defn percept
   [env agent]
@@ -38,10 +32,13 @@
 (defn execute
   [env agent action]
   (case action
-    "move-down" (do (println (:name @agent) "decided to" action "at" (:location @agent))
-                    (move-down agent))
-    "eat" (println (:name @agent) "ate" (first (eat env agent)) "at" (:location @agent))
-    "drink" (println (:name @agent) "drank" (first (drink env agent)) "at" (:location @agent))))
+    nil (do (println (:name @agent) "decided to"
+                     action "at" (:location @agent))
+            (move-down agent))
+    :eat (println (:name @agent) "ate" (first (eat env agent))
+                       "at" (:location @agent))
+    :drink (println (:name @agent) "drank" (first (drink env agent))
+                           "at" (:location @agent))))
 
 (defn check-alive?
   [env]
@@ -53,4 +50,23 @@
 
 (defn program
   [percepts]
-  )
+  (let [mapping {:water :drink
+                 :food :eat}]
+    (println percepts)
+    (map #(mapping (:name %)) percepts)))
+
+(defn up-env
+  []
+  (def dog
+    (new-agent program :blind-dog))
+
+  (def park
+    (new-environment))
+
+  (add-thing park dog 5)
+  (add-thing park food 5)
+  (add-thing park water 7))
+
+(dorun 5 (step park
+               (done? park check-alive? check-edible?)
+               (execute park dog :eat)))
