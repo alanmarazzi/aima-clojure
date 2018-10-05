@@ -40,7 +40,7 @@
   [name & [done? perceive execute]]
   (atom {:name   name
          :things []
-         :agents {}
+         :agents []
          :step 0
          :max-steps 1000
          :done? done?
@@ -87,6 +87,13 @@
      (filter (fn [thing]
                (= (:name thing) kind)) things))))
 
+(defn get-agent
+  ([env]
+   (:agents @env))
+  ([env name]
+   (filter (fn [ag]
+             (= (:name ag) name)) (:agents @env))))
+
 (defn location-empty?
   [env location]
   (empty? (list-things env location)))
@@ -98,9 +105,8 @@
 (defn add-thing
   [env thing location]
   (let [t (:type thing)]
-    (if (= t :things)
-      (swap! env update t conj (set-location thing location))
-      (swap! env update t assoc (:name thing) thing))))
+    (swap! env update t conj
+           (set-location thing location))))
 
 (defn remove-thing
   [env thing]

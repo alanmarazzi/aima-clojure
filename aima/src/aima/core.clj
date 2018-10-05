@@ -44,7 +44,7 @@
                     "at" (:location agent))
     (do (println (:name agent) "decided to"
                  "move down" "at" (:location agent))
-        (move-down env))))
+        (move-down env agent))))
 
 (defn alive-left?
   [env]
@@ -74,7 +74,4 @@
   (add-thing park dog 1)
   (add-thing park food 5)
   (add-thing park water 7))
-
-(defn run
-  [env n]
-  ())
+  
