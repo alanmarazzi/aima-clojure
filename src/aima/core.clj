@@ -39,7 +39,7 @@
   [env agent action]
   (case action
     :eat (println (:name agent) "ate" (:name (eat env agent))
-                       "at" (:location agent))
+                  "at" (:location agent))
     :drink (println (:name agent) "drank" (:name (drink env agent))
                     "at" (:location agent))
     (do (println (:name agent) "decided to"
@@ -60,7 +60,12 @@
                  :food  :eat}]
     (mapping (:name percepts))))
 
-(defn up-env
+(defn run-env
+  [env steps]
+  (doseq [a (range steps)]
+    (step env)))
+
+(defn up-and-run
   []
   (def dog
     (new-agent program :blind-dog))
@@ -73,5 +78,7 @@
 
   (add-thing park dog 1)
   (add-thing park food 5)
-  (add-thing park water 7))
-  
+  (add-thing park water 7)
+
+  (run-env park 10)
+  @park)

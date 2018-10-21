@@ -1,4 +1,5 @@
-(ns aima.agents)
+(ns aima.agents
+  (:require [clojure.pprint :refer [pprint]]))
 
 (defn new-object
   "A `thing`: can represent any inanimate object.
@@ -22,21 +23,33 @@
    :type        :agents})
 
 (defn new-watcher
+  "Attach a watcher to an environment.
+  Good for debugging & teaching purposes"
   [a k h]
   (add-watch a k
              (fn [k a o n]
-               (println "=== CHANGE ===")
-               (println (str k ": "))
-               (println o)
-               (println n)
+               (pprint "=== CHANGE ===")
+               (pprint k)
+               (pprint "OLD")
+               (pprint o)
+               (newline)
+               (pprint "NEW")
+               (pprint n)
                (newline)
                (swap! h update k conj o))))
 
 (defn alive?
+  "Is this thing alive?"
   [obj]
   (:alive obj))
 
 (defn new-environment
+  "Create a new environment to play with. `:name` is required,
+  `:done?` can be added later and it holds a function to determine
+  whether there's anything else to do in the environment, `:perceive`
+  holds the function to let agents perceive their environment,
+  `:execute` holds the function to let agents decide what to do
+  considering their percepts"
   [name & [done? perceive execute]]
   (atom {:name   name
          :things []
@@ -48,6 +61,8 @@
          :execute execute}))
 
 (defn perceive-&-run
+  "Generic function to extract the program from an agent and if it is
+  still alive run the program over percepts"
   [env percept agent]
   (let [f (:program agent)]
     (when (alive? agent)
@@ -62,13 +77,12 @@
     (when-not (done env)
       (let [actions (mapcat #(perceive-&-run env perceive %) agents)]
         (if (seq actions)
-          (for [ac actions
-                ag agents]
-            (execute env ag ac))
+          (mapcat #(execute env %1 %2) agents actions)
           (mapcat #(execute env % nil) agents))))
     (swap! env update :step inc)))
 
 (defn same-location?
+  "Check whether a thing is at `location`"
   [obj location]
   (= (:location obj)
      location))
@@ -99,16 +113,19 @@
   (empty? (list-things env location)))
 
 (defn set-location
+  "Place `obj` (can be whatever) at `location`"
   [obj location]
   (assoc obj :location location))
 
 (defn add-thing
+  "Add `thing` to the proper `env` slot at `location`"
   [env thing location]
   (let [t (:type thing)]
     (swap! env update t conj
            (set-location thing location))))
 
 (defn remove-thing
+  "Remove a `thing` from the given `env`"
   [env thing]
   (let [t (:type thing)]
     (swap! env assoc t (filterv (complement #{thing}) (t @env)))))
@@ -118,7 +135,3 @@
   (some false?
         (for [p preds]
           (p env))))
-
-(defn get-agent
-  [env name]
-  (first (filter #(= name (:name %)) (:agents @env))))
