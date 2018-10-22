@@ -89,8 +89,14 @@
       agt 4.5)))
 
 (deftest remove-thing-test
-  (let [env #(new-environment :this)
-        e   #(add-thing (env) %1 3)
+  (let [env (new-environment :this)
+        e   #(add-thing env %1 3)
+        get-thing #(get-in %1 [%2 0])
         obj (new-object :nothing)
         agt (new-agent nil :generic)]
-    (is (empty? (:things (e obj))))))
+    (do (e obj)
+        (is (empty? (:things
+                     (remove-thing env (get-thing @env :things))))))
+    (do (e agt)
+        (is (empty? (:agents
+                     (remove-thing env (get-thing @env :agents))))))))
