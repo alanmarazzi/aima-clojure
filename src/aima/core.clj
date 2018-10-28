@@ -10,45 +10,45 @@
   [env agent]
   (list-things env (:location agent)))
 
-(defn move-down
+(defn move-down!
   [env agent]
   (let [ag-name (:name agent)
         new-agent (update agent :location inc)
-        dropped (filterv #(not (same-name? % ag-name)) (:agents @env))
+        dropped (filterv #(not (same-name? % ag-name)) (get-agent @env))
         new-locations (conj dropped new-agent)]
     (swap! env assoc :agents new-locations)))
 
-(defn consume-thing
+(defn consume-thing!
   [env location kind]
   (let [things (list-things env location kind)]
     (when (not-empty things)
-      (remove-thing env (first things))
+      (remove-thing! env (first things))
       (first things))))
 
-(defn eat
+(defn eat!
   [env agent]
   (let [location (:location agent)]
-    (consume-thing env location :food)))
+    (consume-thing! env location :food)))
 
-(defn drink
+(defn drink!
   [env agent]
   (let [location (:location agent)]
-    (consume-thing env location :water)))
+    (consume-thing! env location :water)))
 
-(defn execute
+(defn execute!
   [env agent action]
   (case action
-    :eat (println (:name agent) "ate" (:name (eat env agent))
+    :eat (println (:name agent) "ate" (:name (eat! env agent))
                   "at" (:location agent))
-    :drink (println (:name agent) "drank" (:name (drink env agent))
+    :drink (println (:name agent) "drank" (:name (drink! env agent))
                     "at" (:location agent))
     (do (println (:name agent) "decided to"
-                 "move down" "at" (:location agent))
-        (move-down env agent))))
+                 "move down at" (:location agent))
+        (move-down! env agent))))
 
 (defn alive-left?
   [env]
-  (some alive? (:agents @env)))
+  (some alive? (get-agent @env)))
 
 (defn edible-left?
   [env]
@@ -74,7 +74,7 @@
     (new-environment :park
                      (fn [env] (done? env alive-left? edible-left?))
                      percept
-                     execute))
+                     execute!))
 
   (add-thing park dog 1)
   (add-thing park food 5)
