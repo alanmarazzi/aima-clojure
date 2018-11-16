@@ -14,9 +14,9 @@
   [env agent]
   (let [ag-name (:name agent)
         new-agent (update agent :location inc)
-        dropped (filterv #(not (same-name? % ag-name)) (get-agent @env))
+        dropped (filterv #(not (same-name? % ag-name)) (get-agent env))
         new-locations (conj dropped new-agent)]
-    (swap! env assoc :agents new-locations)))
+    (assoc env :agents new-locations)))
 
 (defn consume-thing!
   [env location kind]
@@ -48,11 +48,11 @@
 
 (defn alive-left?
   [env]
-  (some alive? (get-agent @env)))
+  (some alive? (get-agent env)))
 
 (defn edible-left?
   [env]
-  (boolean (some #{:food :water} (map :name (:things @env)))))
+  (boolean (some #{:food :water} (map :name (:things env)))))
 
 (defn program
   [percepts]
@@ -63,7 +63,7 @@
 (defn run-env
   [env steps]
   (doseq [a (range steps)]
-    (step env)))
+    (swap! env step)))
 
 (defn up-and-run
   []
@@ -76,9 +76,9 @@
                      percept
                      execute!))
 
-  (add-thing park dog 1)
-  (add-thing park food 5)
-  (add-thing park water 7)
+  (swap! park add-thing dog 1)
+  (swap! park add-thing food 5)
+  (swap! park add-thing water 7)
 
   (run-env park 10)
   @park)

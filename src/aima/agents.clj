@@ -65,21 +65,20 @@
   still alive run the program over percepts"
   [env agent]
   (let [f       (:program agent)
-        percept (:perceive @env)]
+        percept (:perceive env)]
     (when (alive? agent)
       (map f (percept env agent)))))
 
 (defn step
   [env]
-  (let [done     (:done? @env)
-        execute  (:execute @env)
-        agents   (:agents @env)]
+  (let [done     (:done? env)
+        execute  (:execute env)
+        agents   (:agents env)]
     (when-not (done env)
       (let [actions (mapcat #(perceive-&-run env %) agents)]
         (if (seq actions)
-          (mapcat #(execute env %1 %2) agents actions)
-          (mapcat #(execute env % nil) agents))))
-    (swap! env update :step inc)))
+          (map #(execute (update env :step inc) %1 %2) agents actions)
+          (map #(execute (update env :step inc) % nil) agents))))))
 
 (defn same-location?
   "Check whether a thing is at `location`"
@@ -97,7 +96,7 @@
   "Returns a sequence of things at the given location. If a kind
   is passed as an argument returns only things of that kind"
   ([env location]
-   (let [things (:things @env)]
+   (let [things (:things env)]
      (filter #(same-location? % location) things)))
   ([env location kind]
    (let [things (list-things env location)]
@@ -125,14 +124,13 @@
   "Add `thing` to the proper `env` slot at `location`"
   [env thing location]
   (let [t (:type thing)]
-    (swap! env update t conj
-           (set-location thing location))))
+    (update env t conj (set-location thing location))))
 
 (defn remove-thing!
   "Remove a `thing` from the given `env`"
   [env thing]
   (let [t (:type thing)]
-    (swap! env assoc t (filterv (complement #{thing}) (t @env)))))
+    (assoc t (filterv (complement #{thing}) (t env)))))
 
 (defn done?
   "Tests a sequence of `preds` that take an `env` as argument"
