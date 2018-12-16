@@ -93,21 +93,21 @@
         agt       (new-agent nil :generic)]
     (do (e obj)
         (is (empty? (:things
-                      (remove-thing env (get-thing @env :things))))))
+                      (remove-thing! env (get-thing @env :things))))))
     (do (e agt)
         (is (empty? (:agents
-                      (remove-thing env (get-thing @env :agents))))))
+                      (remove-thing! env (get-thing @env :agents))))))
     (do (e agt)
         (e obj)
         (is (not-empty (:agents
-                         (remove-thing env (get-thing @env :things))))))
+                         (remove-thing! env (get-thing @env :things))))))
     (do (e obj)
         (is (empty? (:things
-                      (remove-thing env (get-thing @env :things))))))
+                      (remove-thing! env (get-thing @env :things))))))
     (do (e obj)
         (e (new-object :test))
         (is (= 1 (count (:things
-                          (remove-thing
+                          (remove-thing!
                              env
                              (get-thing @env :things)))))))))
 

@@ -22,8 +22,7 @@
   [env location kind]
   (let [things (list-things env location kind)]
     (when (not-empty things)
-      (remove-thing! env (first things))
-      (first things))))
+      (remove-thing! env (first things)))))
 
 (defn eat!
   [env agent]
@@ -38,13 +37,23 @@
 (defn execute!
   [env agent action]
   (case action
-    :eat (println (:name agent) "ate" (:name (eat! env agent))
-                  "at" (:location agent))
+    :eat   (let [e (eat! env agent)]
+             (println (:name agent) "ate" (:name e)
+                      "at" (:location agent))
+             e)
     :drink (println (:name agent) "drank" (:name (drink! env agent))
                     "at" (:location agent))
-    (do (println (:name agent) "decided to"
-                 "move down at" (:location agent))
-        (move-down! env agent))))
+    (let [l (move-down! env agent)]
+      (println (:name agent) "decided to"
+               "move down at" (:location agent))
+      l)))
+
+(defn execute!
+  [env agent action]
+  (case action
+    :eat   (eat! env agent)
+    :drink (drink! env agent)
+    (move-down! env agent)))
 
 (defn alive-left?
   [env]
@@ -77,8 +86,8 @@
                      execute!))
 
   (swap! park add-thing dog 1)
-  (swap! park add-thing food 5)
-  (swap! park add-thing water 7)
+  (swap! park add-thing food 1)
+  (swap! park add-thing water 1)
 
   (run-env park 10)
   @park)

@@ -130,7 +130,7 @@
   "Remove a `thing` from the given `env`"
   [env thing]
   (let [t (:type thing)]
-    (assoc t (filterv (complement #{thing}) (t env)))))
+    (assoc env t (filterv (complement #{thing}) (t env)))))
 
 (defn done?
   "Tests a sequence of `preds` that take an `env` as argument"
