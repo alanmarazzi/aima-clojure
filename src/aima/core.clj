@@ -16,6 +16,7 @@
         new-agent (update agent :location inc)
         dropped (filterv #(not (same-name? % ag-name)) (get-agent env))
         new-locations (conj dropped new-agent)]
+    (println "Agent" ag-name "is moving down")
     (assoc env :agents new-locations)))
 
 (defn consume-thing!
@@ -27,26 +28,14 @@
 (defn eat!
   [env agent]
   (let [location (:location agent)]
+    (println "Agent" (:name agent) "eats food at" location)
     (consume-thing! env location :food)))
 
 (defn drink!
   [env agent]
   (let [location (:location agent)]
+    (println "Agent" (:name agent) "drinks water at" location)
     (consume-thing! env location :water)))
-
-(defn execute!
-  [env agent action]
-  (case action
-    :eat   (let [e (eat! env agent)]
-             (println (:name agent) "ate" (:name e)
-                      "at" (:location agent))
-             e)
-    :drink (println (:name agent) "drank" (:name (drink! env agent))
-                    "at" (:location agent))
-    (let [l (move-down! env agent)]
-      (println (:name agent) "decided to"
-               "move down at" (:location agent))
-      l)))
 
 (defn execute!
   [env agent action]
@@ -72,7 +61,7 @@
 (defn run-env
   [env steps]
   (doseq [a (range steps)]
-    (swap! env step)))
+    (swap! env stepper)))
 
 (defn up-and-run
   []
@@ -87,7 +76,11 @@
 
   (swap! park add-thing dog 1)
   (swap! park add-thing food 1)
-  (swap! park add-thing water 1)
+  (swap! park add-thing water 2)
+
+  (def watcher (atom []))
+
+  (new-watcher park :Watchdog watcher)
 
   (run-env park 10)
   @park)

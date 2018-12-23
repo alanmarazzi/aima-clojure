@@ -1,5 +1,6 @@
 (ns aima.agents
-  (:require [clojure.pprint :refer [pprint]]))
+  (:require [clojure.pprint :refer [pprint]]
+            [clojure.data :as d]))
 
 (defn new-object
   "A `thing`: can represent any inanimate object.
@@ -29,14 +30,18 @@
   (add-watch a k
              (fn [k a o n]
                (pprint "=== CHANGE ===")
-               (pprint k)
+               (pprint (str "*** " k " ***"))
+               (newline)
                (pprint "OLD")
                (pprint o)
                (newline)
                (pprint "NEW")
                (pprint n)
                (newline)
-               (swap! h update k conj o))))
+               (pprint "DIFF")
+               (pprint (first (d/diff n o)))
+               (newline)
+               (swap! h conj (first (d/diff n o))))))
 
 (defn alive?
   "Is this thing alive?"
@@ -58,7 +63,8 @@
          :max-steps 1000
          :done? done?
          :perceive perceive
-         :execute execute}))
+         :execute execute
+         :finished false}))
 
 (defn perceive-&-run
   "Generic function to extract the program from an agent and if it is
@@ -71,14 +77,21 @@
 
 (defn step
   [env]
-  (let [done     (:done? env)
-        execute  (:execute env)
-        agents   (:agents env)]
+  (let [done    (:done? env)
+        execute (:execute env)
+        agents  (:agents env)]
     (when-not (done env)
-      (let [actions (mapcat #(perceive-&-run env %) agents)]
-        (if (seq actions)
-          (map #(execute (update env :step inc) %1 %2) agents actions)
-          (map #(execute (update env :step inc) % nil) agents))))))
+      (for [ag agents]
+        (let [actions  (first (perceive-&-run env ag))
+              executed (execute env ag actions)]
+          executed)))))
+
+(defn stepper
+  [env]
+  (let [new-env (first (step env))]
+    (if new-env
+      (update new-env :step inc)
+      (update env :step inc))))
 
 (defn same-location?
   "Check whether a thing is at `location`"
@@ -108,7 +121,7 @@
   ([env]
    (:agents env))
   ([env name]
-   (filter #(same-name? % name) (get-agent env))))
+   (first (filter #(same-name? % name) (get-agent env)))))
 
 (defn location-empty?
   "Is this location empty?"
