@@ -63,8 +63,7 @@
   (doseq [a (range steps)]
     (swap! env stepper)))
 
-(defn up-and-run
-  []
+(comment
   (def dog
     (new-agent program :blind-dog))
 
@@ -75,8 +74,8 @@
                      execute!))
 
   (swap! park add-thing dog 1)
-  (swap! park add-thing food 1)
-  (swap! park add-thing water 2)
+  (swap! park add-thing food 3)
+  (swap! park add-thing water 5)
 
   (def watcher (atom []))
 
