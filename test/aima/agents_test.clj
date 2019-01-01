@@ -188,17 +188,19 @@
             (= :trial)))))
 
 (deftest location-empty-test
-  (let [env (new-environment :test)
-        agt (new-agent nil :generic)
-        obj (new-object :trial)
-        _   (do (add-thing env agt 3)
-                (add-thing env obj 5))]
-    (is (location-empty? env 1))
-    (is (false? (location-empty? env 5)))
-    (is (location-empty? env 3))))
+  (let [env  (mock-env :test)
+        agt  (new-agent nil :generic)
+        obj  (new-object :trial)
+        nenv (-> (add-thing env agt 3)
+                 (add-thing obj 5))]
+    (is (location-empty? nenv 1))
+    (is (false? (location-empty? nenv 5)))
+    (is (location-empty? nenv 3))))
 
 (deftest perceive-&-run-test
   (let [per (fn [e a]
               (list-things e (:location a)))
-        env (new-environment :test)
-        agt #(new-agent)]))
+        env (mock-env :test nil per)
+        agt #(assoc (new-agent %1 :generic) :location %2)]
+    (is (empty? (perceive-&-run env (agt identity 1))))
+    ))
