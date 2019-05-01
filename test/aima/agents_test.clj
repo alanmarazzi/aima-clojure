@@ -183,7 +183,6 @@
     (is (-> (add-thing env agt 3)
             (add-thing agt-2 5)
             (get-agent :trial)
-            first
             :name
             (= :trial)))))
 
@@ -197,10 +196,22 @@
     (is (false? (location-empty? nenv 5)))
     (is (location-empty? nenv 3))))
 
+(defn mock-env-with-things
+  [name & [done? perceive execute]]
+  @(new-environment name done? perceive execute))
+
 (deftest perceive-&-run-test
-  (let [per (fn [e a]
-              (list-things e (:location a)))
-        env (mock-env :test nil per)
-        agt #(assoc (new-agent %1 :generic) :location %2)]
-    (is (empty? (perceive-&-run env (agt identity 1))))
-    ))
+  (let [per  (fn [e a]
+               (list-things e (:location a)))
+        objs (->> (map new-object [:try :this :test])
+                  (map #(assoc %2 :location %1) [1 2 2]))
+        env  (-> (mock-env :test nil per) (assoc :things objs))
+        agt  #(assoc (new-agent %1 :generic) :location %2)]
+    (is (empty? (perceive-&-run env (agt identity 3))))
+    (is (= (first objs)
+           (first (perceive-&-run env (agt identity 1)))))
+    (is (perceive-&-run env (agt alive? 1)))
+    (is (= 2 (count (perceive-&-run env (agt identity 2)))))))
+
+(deftest step-test
+  )

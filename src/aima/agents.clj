@@ -32,9 +32,9 @@
                (pprint "=== CHANGE ===")
                (pprint (str "*** " k " ***"))
                (newline)
-               (pprint "OLD")
-               (pprint o)
-               (newline)
+               (comment (pprint "OLD")
+                        (pprint o)
+                        (newline))
                (pprint "NEW")
                (pprint n)
                (newline)
@@ -76,14 +76,15 @@
       (map f (percept env agent)))))
 
 (defn step
+  ""
   [env]
   (let [done    (:done? env)
         execute (:execute env)
         agents  (:agents env)]
     (when-not (done env)
       (for [ag agents]
-        (let [actions  (first (perceive-&-run env ag))
-              executed (execute env ag actions)]
+        (let [actions  (perceive-&-run env ag)
+              executed (map #(execute env ag %) actions)]
           executed)))))
 
 (defn stepper

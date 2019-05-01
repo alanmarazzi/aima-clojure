@@ -12,9 +12,9 @@
 
 (defn move-down!
   [env agent]
-  (let [ag-name (:name agent)
-        new-agent (update agent :location inc)
-        dropped (filterv #(not (same-name? % ag-name)) (get-agent env))
+  (let [ag-name       (:name agent)
+        new-agent     (update agent :location inc)
+        dropped       (filterv #(not (same-name? % ag-name)) (get-agent env))
         new-locations (conj dropped new-agent)]
     (println "Agent" ag-name "is moving down")
     (assoc env :agents new-locations)))
@@ -73,7 +73,7 @@
                      percept
                      execute!))
 
-  (swap! park add-thing dog 1)
+  (swap! park add-thing dog 3)
   (swap! park add-thing food 3)
   (swap! park add-thing water 5)
 
