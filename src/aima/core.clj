@@ -1,29 +1,31 @@
 (ns aima.core
-  (:require [aima.agents :refer :all :reload true]))
+  (:require [aima.agents :as ag :reload true]))
 
 ; Blind dog example
-(def food (new-object :food))
+(def food (ag/new-object :food))
 
-(def water (new-object :water))
+(def water (ag/new-object :water))
 
 (defn percept
   [env agent]
-  (list-things env (:location agent)))
+  (ag/list-things env (:location agent)))
 
 (defn move-down!
   [env agent]
   (let [ag-name       (:name agent)
         new-agent     (update agent :location inc)
-        dropped       (filterv #(not (same-name? % ag-name)) (get-agent env))
+        dropped       (filterv 
+                       #(not (ag/same-name? % ag-name)) 
+                       (ag/get-agent env))
         new-locations (conj dropped new-agent)]
     (println "Agent" ag-name "is moving down")
     (assoc env :agents new-locations)))
 
 (defn consume-thing!
   [env location kind]
-  (let [things (list-things env location kind)]
+  (let [things (ag/list-things env location kind)]
     (when (not-empty things)
-      (remove-thing! env (first things)))))
+      (ag/remove-thing! env (first things)))))
 
 (defn eat!
   [env agent]
@@ -46,7 +48,7 @@
 
 (defn alive-left?
   [env]
-  (some alive? (get-agent env)))
+  (some ag/alive? (ag/get-agent env)))
 
 (defn edible-left?
   [env]
@@ -60,26 +62,27 @@
 
 (defn run-env
   [env steps]
-  (doseq [a (range steps)]
-    (swap! env stepper)))
+  (doseq [_ (range steps)]
+    (swap! env ag/stepper)))
 
 (comment
   (def dog
-    (new-agent program :blind-dog))
+    (ag/new-agent program :blind-dog))
 
   (def park
-    (new-environment :park
-                     (fn [env] (done? env alive-left? edible-left?))
-                     percept
-                     execute!))
+    (ag/new-environment :park
+                        (fn [env] 
+                          (ag/done? env alive-left? edible-left?))
+                        percept
+                        execute!))
 
-  (swap! park add-thing dog 3)
-  (swap! park add-thing food 3)
-  (swap! park add-thing water 5)
+  (swap! park ag/add-thing dog 3)
+  (swap! park ag/add-thing food 3)
+  (swap! park ag/add-thing water 5)
 
   (def watcher (atom []))
 
   (new-watcher park :Watchdog watcher)
 
-  (run-env park 10)
+  (run-env park 1)
   @park)

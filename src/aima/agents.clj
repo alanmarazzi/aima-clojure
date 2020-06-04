@@ -44,7 +44,7 @@
                (swap! h conj (first (d/diff n o))))))
 
 (defn alive?
-  "Is this thing alive?"
+  "TODO DEPRECATE"
   [obj]
   (:alive obj))
 
@@ -72,20 +72,28 @@
   [env agent]
   (let [f       (:program agent)
         percept (:perceive env)]
-    (when (alive? agent)
+    (when (:alive agent)
       (map f (percept env agent)))))
 
+; Devo trasformare l'azione in un oggetto: {:action :eat :location 1...}
 (defn step
   ""
-  [env]
-  (let [done    (:done? env)
-        execute (:execute env)
-        agents  (:agents env)]
-    (when-not (done env)
-      (for [ag agents]
-        (let [actions  (perceive-&-run env ag)
-              executed (map #(execute env ag %) actions)]
-          executed)))))
+  [{:keys [done? execute agents] :as env}]
+  (when-not (done? env)
+    (interleave agents
+                (->> (map (partial perceive-&-run env) agents)
+                     (map (partial execute env))))))
+
+(defn step
+  [{:keys [done? execute agents] :as env}]
+  (loop [a (first agents)
+         r (rest agents)
+         res []]
+    (if (nil? a)
+      res
+      (recur (first r)
+             (rest r)
+             (conj res (map #(execute env a %) (perceive-&-run env a)))))))
 
 (defn stepper
   [env]
@@ -93,7 +101,7 @@
     (if new-env
       (update new-env :step inc)
       (update env :step inc))))
-
+ 
 (defn same-location?
   "Check whether a thing is at `location`"
   [obj location]
